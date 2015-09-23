@@ -5579,6 +5579,14 @@ def conditional_publisher(registry, xml_parent, data):
                 basedir_tag.set('class',
                                 class_pkg + '.common.'
                                 'BaseDirectory$JenkinsHome')
+        elif kind == "strings-match":
+            ctag.set('class', class_pkg + '.core.StringsMatchCondition')
+            XML.SubElement(ctag, "arg1").text = cdata.get(
+                'condition-string1', '')
+            XML.SubElement(ctag, "arg2").text = cdata.get(
+                'condition-string2', '')
+            XML.SubElement(ctag, "ignoreCase").text = str(cdata.get(
+                'condition-case-insensitive', False)).lower()
         else:
             raise JenkinsJobsException('%s is not a valid condition-kind '
                                        'value.' % kind)
