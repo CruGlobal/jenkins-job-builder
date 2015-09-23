@@ -5587,6 +5587,34 @@ def conditional_publisher(registry, xml_parent, data):
                 'condition-string2', '')
             XML.SubElement(ctag, "ignoreCase").text = str(cdata.get(
                 'condition-case-insensitive', False)).lower()
+        elif kind == "day-of-week":
+            ctag.set('class', class_pkg + '.core.DayCondition')
+            day_selector_class_prefix = class_pkg + '.core.DayCondition$'
+            day_selector_classes = {
+                'weekend': day_selector_class_prefix + 'Weekend',
+                'weekday': day_selector_class_prefix + 'Weekday',
+                'select-days': day_selector_class_prefix + 'SelectDays',
+            }
+            day_selector = cdata.get('day-selector', 'weekend')
+            if day_selector not in day_selector_classes:
+                raise InvalidAttributeError('day-selector', day_selector,
+                                            day_selector_classes)
+            day_selector_tag = XML.SubElement(ctag, "daySelector")
+            day_selector_tag.set('class', day_selector_classes[day_selector])
+            if day_selector == "select-days":
+                days_tag = XML.SubElement(day_selector_tag, "days")
+                day_tag_text = ('org.jenkins__ci.plugins.run__condition.'
+                                'core.DayCondition_-Day')
+                inp_days = cdata.get('days') if cdata.get('days') else {}
+                days = ['SUN', 'MON', 'TUES', 'WED', 'THURS', 'FRI', 'SAT']
+                for day_no, day in enumerate(days, 1):
+                    day_tag = XML.SubElement(days_tag, day_tag_text)
+                    XML.SubElement(day_tag, "day").text = str(day_no)
+                    XML.SubElement(day_tag, "selected").text = str(
+                        inp_days.get(day, False)).lower()
+            XML.SubElement(ctag, "useBuildTime").text = str(cdata.get(
+                'use-build-time', False)).lower()
+
         else:
             raise JenkinsJobsException('%s is not a valid condition-kind '
                                        'value.' % kind)
