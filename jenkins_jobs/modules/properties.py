@@ -832,6 +832,25 @@ def slack(registry, xml_parent, data):
     helpers.convert_mapping_to_xml(slack, data, mapping, fail_required=True)
 
 
+def disk_usage(registry, xml_parent, data):
+    """yaml: disk-usage
+    TODO
+
+    Requires the Jenkins :jenkins-wiki:`Disk Usage Plugin <Disk+Usage+Plugin>`.
+
+    Example:
+
+    .. literalinclude:: \
+            /../../tests/properties/fixtures/disk-usage.yaml
+
+    """
+
+    XML.SubElement(
+        xml_parent,
+        'hudson.plugins.disk__usage.DiskUsageProperty'
+    )
+
+
 def rebuild(registry, xml_parent, data):
     """yaml: rebuild
     This plug-in allows the user to rebuild a parameterized build without
