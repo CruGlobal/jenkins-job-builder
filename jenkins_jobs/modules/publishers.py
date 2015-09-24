@@ -5614,6 +5614,18 @@ def conditional_publisher(registry, xml_parent, data):
                         inp_days.get(day, False)).lower()
             XML.SubElement(ctag, "useBuildTime").text = str(cdata.get(
                 'use-build-time', False)).lower()
+        elif kind == "time":
+            ctag.set('class', class_pkg + '.core.TimeCondition')
+            XML.SubElement(ctag, "earliestHours").text = cdata.get(
+                'earliest-hour', '09')
+            XML.SubElement(ctag, "earliestMinutes").text = cdata.get(
+                'earliest-min', '00')
+            XML.SubElement(ctag, "latestHours").text = cdata.get(
+                'latest-hour', '17')
+            XML.SubElement(ctag, "latestMinutes").text = cdata.get(
+                'latest-min', '30')
+            XML.SubElement(ctag, "useBuildTime").text = str(cdata.get(
+                'use-build-time', False)).lower()
 
         else:
             raise JenkinsJobsException('%s is not a valid condition-kind '
