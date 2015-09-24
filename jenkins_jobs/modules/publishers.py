@@ -5505,7 +5505,7 @@ def conditional_publisher(registry, xml_parent, data):
     <../../tests/publishers/fixtures/conditional-publisher002.yaml>`
 
     """
-    def publish_condition(cdata):
+    def publish_condition(cdata, cond_publisher):
         kind = cdata['condition-kind']
         ctag = XML.SubElement(cond_publisher, condition_tag)
         class_pkg = 'org.jenkins_ci.plugins.run_condition'
@@ -5626,6 +5626,29 @@ def conditional_publisher(registry, xml_parent, data):
                 'latest-min', '30')
             XML.SubElement(ctag, "useBuildTime").text = str(cdata.get(
                 'use-build-time', False)).lower()
+        elif kind == "not":
+            ctag.set('class', class_pkg + '.logic.Not')
+            try:
+                notcondition = cdata['condition-operand']
+            except KeyError:
+                raise MissingAttributeError('condition-operand')
+            publish_condition(notcondition, ctag)
+        elif kind == "and" or kind == "or":
+            if kind == "and":
+                ctag.set('class', class_pkg + '.logic.And')
+            else:
+                ctag.set('class', class_pkg + '.logic.Or')
+            conditions_tag = XML.SubElement(ctag, "conditions")
+            container_tag_text = ('org.jenkins__ci.plugins.run__condition.'
+                                  'logic.ConditionContainer')
+            try:
+                conditions_list = cdata['condition-operands']
+            except KeyError:
+                raise MissingAttributeError('condition-operands')
+            for condition in conditions_list:
+                conditions_container_tag = XML.SubElement(conditions_tag,
+                                                          container_tag_text)
+                publish_condition(condition, conditions_container_tag)
 
         else:
             raise JenkinsJobsException('%s is not a valid condition-kind '
@@ -5660,7 +5683,7 @@ def conditional_publisher(registry, xml_parent, data):
 
     for cond_action in data:
         cond_publisher = XML.SubElement(publishers_tag, cond_publisher_tag)
-        publish_condition(cond_action)
+        publish_condition(cond_action, cond_publisher)
         evaluation_flag = cond_action.get('on-evaluation-failure', 'fail')
         if evaluation_flag not in evaluation_classes.keys():
             raise JenkinsJobsException('on-evaluation-failure value '
