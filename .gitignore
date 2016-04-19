@@ -21,3 +21,7 @@ cover/
 jenkins-job-builder
 testr_subunit_log
 __pycache__
+
+/venv
+.venv
+*.iml
