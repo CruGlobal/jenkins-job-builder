@@ -1659,7 +1659,7 @@ def conditional_step(registry, xml_parent, data):
             except KeyError:
                 raise MissingAttributeError('condition-operand')
             build_condition(notcondition, ctag, "condition")
-        elif kind == "and" or "or":
+        elif kind == "and" or kind == "or":
             if kind == "and":
                 ctag.set('class', logic_prefix + 'And')
             else:
