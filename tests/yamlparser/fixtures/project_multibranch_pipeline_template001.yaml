@@ -18,4 +18,4 @@
 #                exclude:
 #          property-strategy: all-branches-get-same-properties
 #
-#    script-path: Jenkinsfile
+    script-path: Jenkinsfile

@@ -37,10 +37,27 @@ class MultibranchPipeline(jenkins_jobs.modules.base.Base):
     sequence = 0
 
     def root_xml(self, data):
+        mb_prefix = 'org.jenkinsci.plugins.workflow.multibranch.'
         xml_parent = XML.Element(
-            'org.jenkinsci.plugins.workflow.multibranch.'
-            'WorkflowMultiBranchProject',
+            mb_prefix + 'WorkflowMultiBranchProject',
             {'plugin': 'workflow-multibranch'}
         )
+
+        factory_xml = XML.SubElement(
+            xml_parent,
+            'factory',
+            {'class': mb_prefix + 'WorkflowBranchProjectFactory'}
+        )
+        XML.SubElement(
+            factory_xml,
+            'owner',
+            {
+                'class': mb_prefix + 'WorkflowMultiBranchProject',
+                'reference': '../..'
+            }
+        )
+
+        script_path = data.get('script-path', 'Jenkinsfile')
+        XML.SubElement(factory_xml, 'scriptPath').text = script_path
 
         return xml_parent
