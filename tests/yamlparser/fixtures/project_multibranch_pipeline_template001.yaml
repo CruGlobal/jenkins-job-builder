@@ -1,11 +1,11 @@
 - job:
     name: test_job
     project-type: multibranch-pipeline
-#    branch-sources:
-#      - github:
-#          credentials-id:
-#          owner:
-#          repository:
+    branch-sources:
+      - github:
+          credentials-id: Some-GitHub-Credentials
+          owner: SomeOwner
+          repository: some-repo
 #          behaviors:
 #            - discover-branches:
 #                strategy: exclude-branches-filed-as-prs
@@ -16,6 +16,4 @@
 #            - filter-by-name-with-wildcards:
 #                include: master staging
 #                exclude:
-#          property-strategy: all-branches-get-same-properties
-#
     script-path: Jenkinsfile

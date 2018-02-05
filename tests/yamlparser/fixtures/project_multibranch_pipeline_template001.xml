@@ -15,4 +15,19 @@
   <scm class="hudson.scm.NullSCM"/>
   <publishers/>
   <buildWrappers/>
+  <sources class="jenkins.branch.MultiBranchProject$BranchSourceList" plugin="branch-api">
+    <data>
+      <jenkins.branch.BranchSource>
+        <source class="org.jenkinsci.plugins.github_branch_source.GitHubSCMSource" plugin="github-branch-source">
+          <credentialsId>Some-GitHub-Credentials</credentialsId>
+          <repoOwner>SomeOwner</repoOwner>
+          <repository>some-repo</repository>
+        </source>
+        <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
+          <properties class="empty-list"/>
+        </strategy>
+      </jenkins.branch.BranchSource>
+    </data>
+    <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+  </sources>
 </org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject>
