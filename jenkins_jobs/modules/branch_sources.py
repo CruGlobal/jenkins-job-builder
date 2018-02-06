@@ -37,8 +37,8 @@ Example::
 
 import xml.etree.ElementTree as XML
 
-from jenkins_jobs.errors import JenkinsJobsException
 import jenkins_jobs.modules.base
+from jenkins_jobs.errors import JenkinsJobsException, InvalidAttributeError
 
 
 # def git(registry, xml_parent, data):
@@ -74,16 +74,37 @@ def add_property_strategy(xml_parent, data):
     # I'm not implementing this now,
     # but this is where a non-default property strategy would be set up.
 
+    properties = data.get('properties', [])
     strategy_xml = XML.SubElement(
         xml_parent,
         'strategy',
         {'class': 'jenkins.branch.DefaultBranchPropertyStrategy'}
     )
-    XML.SubElement(
+    class_name = 'java.util.Arrays$ArrayList' if properties else 'empty-list'
+    properties_xml = XML.SubElement(
         strategy_xml,
         'properties',
-        {'class': 'empty-list'}
+        {'class': class_name}
     )
+
+    for _property in properties:
+        element = XML.SubElement(
+            properties_xml,
+            'a',
+            {'class': 'jenkins.branch.BranchProperty-array'}
+        )
+        XML.SubElement(element, to_branch_property(_property, 'properties'))
+
+
+def to_branch_property(_property, attribute_name):
+    mapping = {
+        'suppress-automatic-scm-triggering':
+            'jenkins.branch.NoTriggerBranchProperty'
+    }
+    if _property in mapping.keys():
+        return mapping[_property]
+    else:
+        raise InvalidAttributeError(attribute_name, _property, mapping.keys())
 
 
 class BranchSources(jenkins_jobs.modules.base.Base):

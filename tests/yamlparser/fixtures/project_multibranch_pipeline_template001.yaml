@@ -16,4 +16,6 @@
 #            - filter-by-name-with-wildcards:
 #                include: master staging
 #                exclude:
+          properties:
+            - suppress-automatic-scm-triggering
     script-path: Jenkinsfile

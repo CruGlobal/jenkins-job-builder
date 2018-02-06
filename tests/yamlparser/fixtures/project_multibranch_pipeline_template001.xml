@@ -24,7 +24,11 @@
           <repository>some-repo</repository>
         </source>
         <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
-          <properties class="empty-list"/>
+          <properties class="java.util.Arrays$ArrayList">
+            <a class="jenkins.branch.BranchProperty-array">
+              <jenkins.branch.NoTriggerBranchProperty/>
+            </a>
+          </properties>
         </strategy>
       </jenkins.branch.BranchSource>
     </data>
