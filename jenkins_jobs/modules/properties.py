@@ -99,6 +99,63 @@ def ownership(registry, xml_parent, data):
         XML.SubElement(coownersIds, 'string').text = coowner
 
 
+def pipeline_libraries(registry, xml_parent, data):
+    """yaml: pipeline-libraries
+    Lists the libraries available to this pipeline job.
+
+    Example:
+
+    .. literalinclude::
+        /../../tests/properties/fixtures/pipeline-libraries.yaml
+       :language: yaml
+    """
+    folder_libraries = XML.SubElement(
+        xml_parent,
+        'org.jenkinsci.plugins.workflow.libs.FolderLibraries',
+        {'plugin': 'workflow-cps-global-lib'}
+    )
+    libraries = XML.SubElement(folder_libraries, 'libraries')
+    library_configuration = XML.SubElement(
+        libraries,
+        'org.jenkinsci.plugins.workflow.libs.LibraryConfiguration'
+    )
+    for library in data:
+        mapping = [
+            ('name', 'name', None),
+            ('default-version', 'defaultVersion', ''),
+            ('load-implicitly', 'implicit', False),
+            ('allow-default-version-override', 'allowVersionOverride', True),
+            (
+                'include-library-changes-in-changesets',
+                'includeInChangesets',
+                True
+            ),
+        ]
+        helpers.convert_mapping_to_xml(
+            library_configuration, library, mapping, fail_required=True
+        )
+        if not library.get('allow-default-version-override') and \
+                not library.get('default-version'):
+            raise JenkinsJobsException(
+                'a default version is required'
+                ' if allow-default-version-override is false'
+            )
+
+        retrieval_method = library.get('retrieval-method')
+        if retrieval_method is None:
+            raise MissingAttributeError('retrieval-method')
+
+        # for now, we only support modern scm retrieval methods
+        # (and not legacy ones)
+        retriever = XML.SubElement(
+            library_configuration,
+            'retriever',
+            {'class': 'org.jenkinsci.plugins.workflow.libs.SCMSourceRetriever'}
+        )
+        scm = XML.SubElement(retriever, 'scm')
+        registry.dispatch('branch-source', scm, retrieval_method)
+
+
 def promoted_build(registry, xml_parent, data):
     """yaml: promoted-build
     Marks a build for promotion. A promotion process with an identical

@@ -52,29 +52,22 @@ def github(registry, xml_parent, data):
     Github branch source
 
     """
-    source = XML.SubElement(
-        xml_parent,
-        'source',
-        {
-            'class': 'org.jenkinsci.plugins.github_branch_source.'
-                     'GitHubSCMSource',
-            'plugin': 'github-branch-source'
-        }
-    )
+    xml_parent.attrib['class'] = 'org.jenkinsci.plugins.github_branch_source.' \
+                                 'GitHubSCMSource'
+    xml_parent.attrib['plugin'] = 'github-branch-source'
 
     credentials_id = data.get('credentials-id', None)
     if credentials_id is not None:
-        XML.SubElement(source, 'credentialsId').text = credentials_id
+        XML.SubElement(xml_parent, 'credentialsId').text = credentials_id
 
-    XML.SubElement(source, 'repoOwner').text = data['owner']
-    XML.SubElement(source, 'repository').text = data['repository']
+    XML.SubElement(xml_parent, 'repoOwner').text = data['owner']
+    XML.SubElement(xml_parent, 'repository').text = data['repository']
 
     behaviors = data.get('behaviors', None)
     if behaviors is not None:
-        traits = XML.SubElement(source, 'traits')
+        traits = XML.SubElement(xml_parent, 'traits')
         for behavior, behavior_data in behaviors.items():
             add_behavior(behavior, behavior_data, traits)
-    add_property_strategy(xml_parent, data)
 
 
 def add_behavior(behavior, behavior_data, traits):
@@ -175,6 +168,53 @@ def filter_by_name_with_wildcards_trait(behavior_data, traits):
     convert_mapping_to_xml(trait, behavior_data, mapping)
 
 
+class BranchSources(jenkins_jobs.modules.base.Base):
+    sequence = 85
+
+    component_type = 'branch-source'
+    component_list_type = 'branch-sources'
+
+    def gen_xml(self, xml_parent, data):
+        if 'branch-sources' not in data:
+            return
+
+        mb_class = 'org.jenkinsci.plugins.workflow.multibranch.' \
+                   'WorkflowMultiBranchProject'
+        if xml_parent.tag != mb_class:
+            raise JenkinsJobsException(
+                "Branch Sources may only be used for Multibranch Pipelines"
+            )
+
+        sources = XML.SubElement(
+            xml_parent,
+            'sources',
+            {
+                'class': 'jenkins.branch.MultiBranchProject$BranchSourceList',
+                'plugin': 'branch-api'
+            }
+        )
+        data_xml = XML.SubElement(sources, 'data')
+
+        for source in data.get('branch-sources', []):
+            branch_source = XML.SubElement(
+                data_xml,
+                'jenkins.branch.BranchSource'
+            )
+            source_xml = XML.SubElement(branch_source, 'source')
+            self.registry.dispatch('branch-source', source_xml, source)
+            source_data = next(iter(source.values()))
+            add_property_strategy(branch_source, source_data)
+
+        XML.SubElement(
+            sources,
+            'owner',
+            {
+                'class': mb_class,
+                'reference': '../..'
+            }
+        )
+
+
 def add_property_strategy(xml_parent, data):
     # I'm not implementing this now,
     # but this is where a non-default property strategy would be set up.
@@ -210,47 +250,3 @@ def to_branch_property(_property, attribute_name):
         return mapping[_property]
     else:
         raise InvalidAttributeError(attribute_name, _property, mapping.keys())
-
-
-class BranchSources(jenkins_jobs.modules.base.Base):
-    sequence = 85
-
-    component_type = 'branch-source'
-    component_list_type = 'branch-sources'
-
-    def gen_xml(self, xml_parent, data):
-        if 'branch-sources' not in data:
-            return
-
-        mb_class = 'org.jenkinsci.plugins.workflow.multibranch.' \
-                   'WorkflowMultiBranchProject'
-        if xml_parent.tag != mb_class:
-            raise JenkinsJobsException(
-                "Branch Sources may only be used for Multibranch Pipelines"
-            )
-
-        sources = XML.SubElement(
-            xml_parent,
-            'sources',
-            {
-                'class': 'jenkins.branch.MultiBranchProject$BranchSourceList',
-                'plugin': 'branch-api'
-            }
-        )
-        data_xml = XML.SubElement(sources, 'data')
-
-        for source in data.get('branch-sources', []):
-            branch_source = XML.SubElement(
-                data_xml,
-                'jenkins.branch.BranchSource'
-            )
-            self.registry.dispatch('branch-source', branch_source, source)
-
-        XML.SubElement(
-            sources,
-            'owner',
-            {
-                'class': mb_class,
-                'reference': '../..'
-            }
-        )
