@@ -39,6 +39,7 @@ import xml.etree.ElementTree as XML
 
 import jenkins_jobs.modules.base
 from jenkins_jobs.errors import JenkinsJobsException, InvalidAttributeError
+from jenkins_jobs.modules.helpers import convert_mapping_to_xml
 
 
 # def git(registry, xml_parent, data):
@@ -67,7 +68,119 @@ def github(registry, xml_parent, data):
 
     XML.SubElement(source, 'repoOwner').text = data['owner']
     XML.SubElement(source, 'repository').text = data['repository']
+
+    behaviors = data.get('behaviors', None)
+    if behaviors is not None:
+        traits = XML.SubElement(source, 'traits')
+        for behavior in behaviors:
+            add_behavior(behavior, traits)
     add_property_strategy(xml_parent, data)
+
+
+def add_behavior(behavior, traits):
+    if 'discover-branches' in behavior:
+        add_discover_branches_trait(behavior['discover-branches'], traits)
+    elif 'discover-pull-requests-from-origin' in behavior:
+        add_pull_requests_from_origin(
+            behavior['discover-pull-requests-from-origin'],
+            traits
+        )
+    elif 'discover-pull-requests-from-forks' in behavior:
+        add_pull_requests_from_forks(
+            behavior['discover-pull-requests-from-forks'],
+            traits
+        )
+    elif 'filter-by-name-with-wildcards' in behavior:
+        filter_by_name_with_wildcards_trait(
+            behavior['filter-by-name-with-wildcards'],
+            traits
+        )
+    else:
+        valid_values = [
+            'discover-branches',
+            'discover-pull-requests-from-origin',
+            'discover-pull-requests-from-forks',
+            'filter-by-name-with-wildcards'
+        ]
+        raise InvalidAttributeError('behaviors', behavior, valid_values)
+
+
+def add_discover_branches_trait(behavior_data, traits):
+    trait = XML.SubElement(traits, '%s.BranchDiscoveryTrait' % gbs_prefix())
+
+    options = {
+        'exclude-branches-filed-as-prs': 1,
+        'only-branches-filed-as-prs': 2,
+        'all': 3
+    }
+    mapping = [
+        ('strategy', 'strategyId', 'exclude-branches-filed-as-prs', options)
+    ]
+    convert_mapping_to_xml(trait, behavior_data, mapping, fail_required=True)
+
+
+def add_pull_requests_from_origin(behavior_data, traits):
+    trait = XML.SubElement(
+        traits,
+        '%s.OriginPullRequestDiscoveryTrait' % gbs_prefix()
+    )
+
+    add_pull_request_discovery_strategy(behavior_data, trait)
+
+
+def add_pull_requests_from_forks(behavior_data, traits):
+    trait = XML.SubElement(
+        traits,
+        '%s.ForkPullRequestDiscoveryTrait' % gbs_prefix()
+    )
+
+    add_pull_request_discovery_strategy(behavior_data, trait)
+    trait_prefix = 'org.jenkinsci.plugins.github_branch_source.' \
+                   'ForkPullRequestDiscoveryTrait$'
+    mapping = {
+        'contributors': trait_prefix + 'TrustContributors',
+        'everyone': trait_prefix + 'TrustEveryone',
+        'admins-and-writers': trait_prefix + 'TrustPermission',
+        'nobody': trait_prefix + 'TrustNobody'
+    }
+
+    trait_key = behavior_data.get('trust', 'contributors')
+    if trait_key not in mapping.keys():
+        raise InvalidAttributeError('trust', trait_key, mapping.keys())
+
+    XML.SubElement(trait, 'trust', {'class': mapping[trait_key]})
+
+
+def gbs_prefix():
+    return 'org.jenkinsci.plugins.github__branch__source'
+
+
+def add_pull_request_discovery_strategy(behavior_data, trait):
+    mapping = [(
+        'strategy',
+        'strategyId',
+        'merge-prs-with-current-target-branch-revision',
+        {
+            'merge-prs-with-current-target-branch-revision': 1,
+            'use-current-pr-revision': 2,
+            'both-current-pr-and-merge-with-target-branch-revision': 3
+        }
+    )]
+    convert_mapping_to_xml(trait, behavior_data, mapping, fail_required=True)
+
+
+def filter_by_name_with_wildcards_trait(behavior_data, traits):
+    trait = XML.SubElement(
+        traits,
+        'jenkins.scm.impl.trait.WildcardSCMHeadFilterTrait',
+        {'plugin': 'scm-api'}
+    )
+
+    mapping = [
+        ('include', 'includes', '*'),
+        ('exclude', 'excludes', ''),
+    ]
+    convert_mapping_to_xml(trait, behavior_data, mapping)
 
 
 def add_property_strategy(xml_parent, data):

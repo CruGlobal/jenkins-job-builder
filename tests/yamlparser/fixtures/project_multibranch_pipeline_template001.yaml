@@ -6,16 +6,16 @@
           credentials-id: Some-GitHub-Credentials
           owner: SomeOwner
           repository: some-repo
-#          behaviors:
-#            - discover-branches:
-#                strategy: exclude-branches-filed-as-prs
-#            - discover-pull-requests-from-origin:
-#                strategy: merge-prs-with-current-target-branch-revision
-#            - discover-pull-requests-from-forks:
-#                strategy: merge-prs-with-current-target-branch-revision
-#            - filter-by-name-with-wildcards:
-#                include: master staging
-#                exclude:
+          behaviors:
+            - discover-branches:
+                strategy: exclude-branches-filed-as-prs
+            - discover-pull-requests-from-origin:
+                strategy: merge-prs-with-current-target-branch-revision
+            - discover-pull-requests-from-forks:
+                strategy: merge-prs-with-current-target-branch-revision
+                trust: contributors
+            - filter-by-name-with-wildcards:
+                include: master staging
           properties:
             - suppress-automatic-scm-triggering
     script-path: Jenkinsfile

@@ -22,6 +22,22 @@
           <credentialsId>Some-GitHub-Credentials</credentialsId>
           <repoOwner>SomeOwner</repoOwner>
           <repository>some-repo</repository>
+          <traits>
+            <org.jenkinsci.plugins.github__branch__source.BranchDiscoveryTrait>
+              <strategyId>1</strategyId>
+            </org.jenkinsci.plugins.github__branch__source.BranchDiscoveryTrait>
+            <org.jenkinsci.plugins.github__branch__source.OriginPullRequestDiscoveryTrait>
+              <strategyId>1</strategyId>
+            </org.jenkinsci.plugins.github__branch__source.OriginPullRequestDiscoveryTrait>
+            <org.jenkinsci.plugins.github__branch__source.ForkPullRequestDiscoveryTrait>
+              <strategyId>1</strategyId>
+              <trust class="org.jenkinsci.plugins.github_branch_source.ForkPullRequestDiscoveryTrait$TrustContributors"/>
+            </org.jenkinsci.plugins.github__branch__source.ForkPullRequestDiscoveryTrait>
+            <jenkins.scm.impl.trait.WildcardSCMHeadFilterTrait plugin="scm-api">
+              <includes>master staging</includes>
+              <excludes/>
+            </jenkins.scm.impl.trait.WildcardSCMHeadFilterTrait>
+          </traits>
         </source>
         <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
           <properties class="java.util.Arrays$ArrayList">
