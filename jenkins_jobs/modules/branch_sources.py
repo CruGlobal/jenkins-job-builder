@@ -72,37 +72,29 @@ def github(registry, xml_parent, data):
     behaviors = data.get('behaviors', None)
     if behaviors is not None:
         traits = XML.SubElement(source, 'traits')
-        for behavior in behaviors:
-            add_behavior(behavior, traits)
+        for behavior, behavior_data in behaviors.items():
+            add_behavior(behavior, behavior_data, traits)
     add_property_strategy(xml_parent, data)
 
 
-def add_behavior(behavior, traits):
-    if 'discover-branches' in behavior:
-        add_discover_branches_trait(behavior['discover-branches'], traits)
-    elif 'discover-pull-requests-from-origin' in behavior:
-        add_pull_requests_from_origin(
-            behavior['discover-pull-requests-from-origin'],
-            traits
-        )
-    elif 'discover-pull-requests-from-forks' in behavior:
-        add_pull_requests_from_forks(
-            behavior['discover-pull-requests-from-forks'],
-            traits
-        )
-    elif 'filter-by-name-with-wildcards' in behavior:
-        filter_by_name_with_wildcards_trait(
-            behavior['filter-by-name-with-wildcards'],
-            traits
-        )
+def add_behavior(behavior, behavior_data, traits):
+    behavior_data = {} if behavior_data is None else behavior_data
+    behavior_handlers = {
+        'discover-branches': add_discover_branches_trait,
+        'discover-pull-requests-from-origin': add_pull_requests_from_origin,
+        'discover-pull-requests-from-forks': add_pull_requests_from_forks,
+        'filter-by-name-with-wildcards': filter_by_name_with_wildcards_trait
+    }
+
+    if behavior in behavior_handlers:
+        handler = behavior_handlers[behavior]
     else:
-        valid_values = [
-            'discover-branches',
-            'discover-pull-requests-from-origin',
-            'discover-pull-requests-from-forks',
-            'filter-by-name-with-wildcards'
-        ]
-        raise InvalidAttributeError('behaviors', behavior, valid_values)
+        raise InvalidAttributeError(
+            'behaviors',
+            behavior,
+            behavior_handlers.keys()
+        )
+    handler(behavior_data, traits)
 
 
 def add_discover_branches_trait(behavior_data, traits):
