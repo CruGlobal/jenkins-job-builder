@@ -1,0 +1,12 @@
+- job:
+    name: test_job
+    project-type: multibranch-pipeline
+    branch-sources:
+      - github:
+          owner: SomeOwner
+          repository: some-public-repo
+          behaviors:
+            discover-branches:
+            discover-pull-requests-from-origin:
+              strategy: use-current-pr-revision
+            discover-pull-requests-from-forks:

@@ -1,0 +1,15 @@
+properties:
+  - pipeline-libraries:
+      - name: some-lib
+        default-version: stable
+        load-implicitly: false
+        allow-default-version-override: true
+        include-library-changes-in-changesets: true
+        retrieval-method:
+          github:
+            owner: SomeOwner
+            repository: some-public-repo
+            behaviors:
+              discover-branches:
+              discover-pull-requests-from-origin:
+                strategy: both-current-pr-and-merge-with-target-branch-revision
