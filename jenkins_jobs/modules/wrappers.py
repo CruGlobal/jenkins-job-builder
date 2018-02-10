@@ -804,7 +804,11 @@ def build_name(registry, xml_parent, data):
     bsetter = XML.SubElement(xml_parent,
                              'org.jenkinsci.plugins.buildnamesetter.'
                              'BuildNameSetter')
-    mapping = [('name', 'template', None)]
+    mapping = [
+        ('name', 'template', None),
+        ('run-at-start', 'runAtStart', 'true'),
+        ('run-at-end', 'runAtEnd', 'true')
+    ]
     convert_mapping_to_xml(bsetter, data, mapping, fail_required=True)
 
 

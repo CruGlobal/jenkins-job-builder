@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+  <publishers>
+    <org.jenkins__ci.plugins.flexible__publish.FlexiblePublisher>
+      <publishers>
+        <org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+          <condition class="org.jenkins_ci.plugins.run_condition.logic.Or">
+            <conditions>
+              <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+                <condition class="org.jenkins_ci.plugins.run_condition.core.StringsMatchCondition">
+                  <arg1>${GIT_BRANCH}</arg1>
+                  <arg2>origin/staging</arg2>
+                  <ignoreCase>false</ignoreCase>
+                </condition>
+              </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+              <org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+                <condition class="org.jenkins_ci.plugins.run_condition.core.FileExistsCondition">
+                  <file>mytestfile</file>
+                  <baseDir class="org.jenkins_ci.plugins.run_condition.common.BaseDirectory$Workspace"/>
+                </condition>
+              </org.jenkins__ci.plugins.run__condition.logic.ConditionContainer>
+            </conditions>
+          </condition>
+          <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail"/>
+          <publisher class="hudson.tasks.ArtifactArchiver">
+            <artifacts>**/**</artifacts>
+            <allowEmptyArchive>true</allowEmptyArchive>
+            <onlyIfSuccessful>false</onlyIfSuccessful>
+            <fingerprint>false</fingerprint>
+            <defaultExcludes>true</defaultExcludes>
+            <caseSensitive>true</caseSensitive>
+            <latestOnly>false</latestOnly>
+          </publisher>
+        </org.jenkins__ci.plugins.flexible__publish.ConditionalPublisher>
+      </publishers>
+    </org.jenkins__ci.plugins.flexible__publish.FlexiblePublisher>
+  </publishers>
+</project>

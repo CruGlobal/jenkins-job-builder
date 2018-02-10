@@ -722,6 +722,83 @@ def matrix_combinations_param(registry, xml_parent, data):
     return pdef
 
 
+def git_param(registry, xml_parent, data):
+    """yaml: git
+    A git parameter.
+
+    :arg str name: the name of the parameter
+    :arg str default: the default value of the parameter (optional)
+    :arg str description: a description of the parameter (optional)
+    :arg str type: what kind of parameter options to give
+
+        :type values:
+            * **tag**
+            * **branch**
+            * **branch-or-tag**
+            * **revision**
+    :arg str sort: how to sort the values
+
+        :type values:
+            * **none**
+            * **ascending-smart**
+            * **descending-smart**
+            * **ascending**
+            * **descending**
+    :arg str tag-filter: tag filter
+
+    Example::
+
+      parameters:
+        - git:
+            name: TAG
+            description: "which tag to build"
+            type: tag
+            tag-filter: "*"
+            branch: master
+            sort: ascending-smart
+        - git:
+            name: BRANCH_SPECIFIER
+            description: "which branch to build"
+            type: branch
+            default: origin/master
+    """
+    ptype = 'net.uaznia.lukanus.hudson.plugins.gitparameter.' \
+            'GitParameterDefinition'
+    pdef = base_param(registry, xml_parent, data, True, ptype)
+
+    type_dict = {'tag': 'PT_TAG',
+                 'branch': 'PT_BRANCH',
+                 'branch-or-tag': 'PT_BRANCH_TAG',
+                 'revision': 'PT_REVISION'}
+    parameter_type = data['type']
+
+    if parameter_type not in type_dict:
+        raise JenkinsJobsException("type entered is not valid, "
+                                   "must be one of: %s" %
+                                   ", ".join(type_dict.keys()))
+
+    XML.SubElement(pdef, 'type').text = type_dict.get(parameter_type)
+    XML.SubElement(pdef, 'branch').text = data.get('branch', None)
+    XML.SubElement(pdef, 'tagFilter').text = data.get('tag-filter', '*')
+    XML.SubElement(pdef, 'branchFilter').text = data.get('branch-filter', '*')
+
+    sort_dict = {'none': 'NONE',
+                 'ascending-smart': 'ASCENDING_SMART',
+                 'descending-smart': 'DESCENDING_SMART',
+                 'ascending': 'ASCENDING',
+                 'descending': 'DESCENDING'}
+    sort_type = data.get('sort', 'none')
+    if sort_type not in sort_dict:
+        raise JenkinsJobsException("type entered is not valid, "
+                                   "must be one of: %s" %
+                                   ", ".join(sort_dict.keys()))
+
+    XML.SubElement(pdef, 'sortMode').text = sort_dict.get(sort_type)
+
+    enabled = data.get('quick-filter-enabled', 'false')
+    XML.SubElement(pdef, 'quickFilterEnabled').text = enabled
+
+
 def copyartifact_build_selector_param(registry, xml_parent, data):
     """yaml: copyartifact-build-selector
 

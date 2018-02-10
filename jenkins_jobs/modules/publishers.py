@@ -5505,7 +5505,7 @@ def conditional_publisher(registry, xml_parent, data):
     <../../tests/publishers/fixtures/conditional-publisher002.yaml>`
 
     """
-    def publish_condition(cdata):
+    def publish_condition(cdata, cond_publisher):
         kind = cdata['condition-kind']
         ctag = XML.SubElement(cond_publisher, condition_tag)
         class_pkg = 'org.jenkins_ci.plugins.run_condition'
@@ -5579,6 +5579,77 @@ def conditional_publisher(registry, xml_parent, data):
                 basedir_tag.set('class',
                                 class_pkg + '.common.'
                                 'BaseDirectory$JenkinsHome')
+        elif kind == "strings-match":
+            ctag.set('class', class_pkg + '.core.StringsMatchCondition')
+            XML.SubElement(ctag, "arg1").text = cdata.get(
+                'condition-string1', '')
+            XML.SubElement(ctag, "arg2").text = cdata.get(
+                'condition-string2', '')
+            XML.SubElement(ctag, "ignoreCase").text = str(cdata.get(
+                'condition-case-insensitive', False)).lower()
+        elif kind == "day-of-week":
+            ctag.set('class', class_pkg + '.core.DayCondition')
+            day_selector_class_prefix = class_pkg + '.core.DayCondition$'
+            day_selector_classes = {
+                'weekend': day_selector_class_prefix + 'Weekend',
+                'weekday': day_selector_class_prefix + 'Weekday',
+                'select-days': day_selector_class_prefix + 'SelectDays',
+            }
+            day_selector = cdata.get('day-selector', 'weekend')
+            if day_selector not in day_selector_classes:
+                raise InvalidAttributeError('day-selector', day_selector,
+                                            day_selector_classes)
+            day_selector_tag = XML.SubElement(ctag, "daySelector")
+            day_selector_tag.set('class', day_selector_classes[day_selector])
+            if day_selector == "select-days":
+                days_tag = XML.SubElement(day_selector_tag, "days")
+                day_tag_text = ('org.jenkins__ci.plugins.run__condition.'
+                                'core.DayCondition_-Day')
+                inp_days = cdata.get('days') if cdata.get('days') else {}
+                days = ['SUN', 'MON', 'TUES', 'WED', 'THURS', 'FRI', 'SAT']
+                for day_no, day in enumerate(days, 1):
+                    day_tag = XML.SubElement(days_tag, day_tag_text)
+                    XML.SubElement(day_tag, "day").text = str(day_no)
+                    XML.SubElement(day_tag, "selected").text = str(
+                        inp_days.get(day, False)).lower()
+            XML.SubElement(ctag, "useBuildTime").text = str(cdata.get(
+                'use-build-time', False)).lower()
+        elif kind == "time":
+            ctag.set('class', class_pkg + '.core.TimeCondition')
+            XML.SubElement(ctag, "earliestHours").text = cdata.get(
+                'earliest-hour', '09')
+            XML.SubElement(ctag, "earliestMinutes").text = cdata.get(
+                'earliest-min', '00')
+            XML.SubElement(ctag, "latestHours").text = cdata.get(
+                'latest-hour', '17')
+            XML.SubElement(ctag, "latestMinutes").text = cdata.get(
+                'latest-min', '30')
+            XML.SubElement(ctag, "useBuildTime").text = str(cdata.get(
+                'use-build-time', False)).lower()
+        elif kind == "not":
+            ctag.set('class', class_pkg + '.logic.Not')
+            try:
+                notcondition = cdata['condition-operand']
+            except KeyError:
+                raise MissingAttributeError('condition-operand')
+            publish_condition(notcondition, ctag)
+        elif kind == "and" or kind == "or":
+            if kind == "and":
+                ctag.set('class', class_pkg + '.logic.And')
+            else:
+                ctag.set('class', class_pkg + '.logic.Or')
+            conditions_tag = XML.SubElement(ctag, "conditions")
+            container_tag_text = ('org.jenkins__ci.plugins.run__condition.'
+                                  'logic.ConditionContainer')
+            try:
+                conditions_list = cdata['condition-operands']
+            except KeyError:
+                raise MissingAttributeError('condition-operands')
+            for condition in conditions_list:
+                conditions_container_tag = XML.SubElement(conditions_tag,
+                                                          container_tag_text)
+                publish_condition(condition, conditions_container_tag)
+
         else:
             raise JenkinsJobsException('%s is not a valid condition-kind '
                                        'value.' % kind)
@@ -5612,7 +5683,7 @@ def conditional_publisher(registry, xml_parent, data):
 
     for cond_action in data:
         cond_publisher = XML.SubElement(publishers_tag, cond_publisher_tag)
-        publish_condition(cond_action)
+        publish_condition(cond_action, cond_publisher)
         evaluation_flag = cond_action.get('on-evaluation-failure', 'fail')
         if evaluation_flag not in evaluation_classes.keys():
             raise JenkinsJobsException('on-evaluation-failure value '

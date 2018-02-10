@@ -1,0 +1,11 @@
+publishers:
+    - conditional-publisher:
+        - condition-kind: time
+          earliest-hour: "4"
+          earliest-min: "15"
+          latest-hour: "20"
+          latest-min: "30"
+          action:
+              - archive:
+                  artifacts: '**/**'
+                  allow-empty: 'true'
