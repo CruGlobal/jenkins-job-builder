@@ -69,6 +69,10 @@ def github(registry, xml_parent, data):
         for behavior, behavior_data in behaviors.items():
             add_behavior(behavior, behavior_data, traits)
 
+    # We are responsible for setting an id
+    # See https://issues.jenkins-ci.org/browse/JENKINS-48571
+    XML.SubElement(xml_parent, 'id').text = str(hash(XML.tostring(xml_parent)))
+
 
 def add_behavior(behavior, behavior_data, traits):
     behavior_data = {} if behavior_data is None else behavior_data

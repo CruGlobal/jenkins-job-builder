@@ -21,6 +21,7 @@
                   <strategyId>3</strategyId>
                 </org.jenkinsci.plugins.github__branch__source.OriginPullRequestDiscoveryTrait>
               </traits>
+              <id>-1893506622473322320</id>
             </scm>
           </retriever>
         </org.jenkinsci.plugins.workflow.libs.LibraryConfiguration>
