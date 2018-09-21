@@ -33,6 +33,7 @@
               <trust class="org.jenkinsci.plugins.github_branch_source.ForkPullRequestDiscoveryTrait$TrustContributors"/>
             </org.jenkinsci.plugins.github__branch__source.ForkPullRequestDiscoveryTrait>
           </traits>
+          <id>-2226602702690708545</id>
         </source>
         <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
           <properties class="empty-list"/>

@@ -38,6 +38,7 @@
               <excludes/>
             </jenkins.scm.impl.trait.WildcardSCMHeadFilterTrait>
           </traits>
+          <id>-6880172972930136773</id>
         </source>
         <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
           <properties class="java.util.Arrays$ArrayList">
