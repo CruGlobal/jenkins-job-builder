@@ -1,8 +1,0 @@
-parameters:
-  - git:
-      name: TAG
-      description: "which tag to build"
-      type: tag
-      branch: master
-      tag-filter: "*"
-      sort: ascending-smart
